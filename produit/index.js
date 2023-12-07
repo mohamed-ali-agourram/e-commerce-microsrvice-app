@@ -8,7 +8,12 @@ const Produit = require("./Produit")
 
 app.use(express.json())
 
-app.post("/produit/ajouter", async (req, res, next) => {
+app.get("/", (req, res) => {
+    res.send("Hello");
+});
+
+
+app.post("/produit/ajouter", async (req, res) => {
     const { nom, description, prix } = req.body;
     try {
         const newProduit = new Produit({
@@ -19,19 +24,15 @@ app.post("/produit/ajouter", async (req, res, next) => {
         const resultat = await newProduit.save()
         res.status(201).send(resultat)
     } catch (e) {
-        res.status(400).send({ error });
+        res.status(400).send(e.message);
     }
 });
 
-app.get("/produit/acheter", async (req, res) => {
+app.post('/produit/acheter', (req, res) => {
     const { ids } = req.body;
-    // in mongosh: db.produits.find({_id: {$in: [ObjectId("657049f163cada5dd4e506c9"), ObjectId("65704ad263cada5dd4e506d4")]}})
-    try {
-        const produits = await Produit.find({ _id: { $in: ids } })
-        res.status(201).send(produits)
-    } catch (e) {
-        res.status(400).send(e.message)
-    }
+    Produit.find({ _id: { $in: ids } })
+        .then(produits => res.status(201).json(produits))
+        .catch(error => res.status(400).json({ error }));
 });
 
 app.listen(4000, () => {
