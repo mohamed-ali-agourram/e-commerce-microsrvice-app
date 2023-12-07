@@ -6,10 +6,45 @@ const mongoose = require("mongoose")
 mongoose.connect("mongodb://127.0.0.1:27017/commande-service")
 const Commande = require("./Commande")
 
-app.get("/", (req, res)=>{
-    res.send('HELLO WORLD!');
-})
+const axios = require('axios');
 
-app.listen("4001", ()=>{
+app.use(express.json());
+
+function prixTotal(produits) {
+    let total = 0;
+    for (let t = 0; t < produits.length; ++t) {
+        total += produits[t].prix;
+    }
+    return total;
+}
+
+async function httpRequest(ids) {
+    const url = "http://localhost:4000/produit/acheter";
+    try {
+        const response = await axios.post(url, { ids });
+        return prixTotal(response.data);
+    } catch (error) {
+        throw error;
+    }
+}
+
+app.post('/commande/ajouter', async (req, res) => {
+    try {
+        const { ids, email_utilisateur } = req.body;
+        const prix_total = await httpRequest(ids);
+        const newCommande = new Commande({
+            produits: ids,
+            email_utilisateur,
+            prix_total,
+        });
+        newCommande.save()
+            .then(commande => res.status(201).json(commande))
+            .catch(error => res.status(400).json({ error }));
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.listen("4001", () => {
     console.log('http://localhost:4001/');
 })
