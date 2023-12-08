@@ -5,6 +5,7 @@ const app = express()
 const mongoose = require("mongoose")
 mongoose.connect("mongodb://127.0.0.1:27017/commande-service")
 const Commande = require("./Commande")
+const isAuthenticated = require("./isAuthenticated")
 
 const axios = require('axios');
 
@@ -28,13 +29,13 @@ async function httpRequest(ids) {
     }
 }
 
-app.post('/commande/ajouter', async (req, res) => {
+app.post('/commande/ajouter', isAuthenticated, async (req, res) => {
     try {
-        const { ids, email_utilisateur } = req.body;
+        const { ids } = req.body;
         const prix_total = await httpRequest(ids);
         const newCommande = new Commande({
             produits: ids,
-            email_utilisateur,
+            email_utilisateur: req.user.email,
             prix_total,
         });
         newCommande.save()
