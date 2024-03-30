@@ -15,8 +15,13 @@ const username = process.env.MONGODB_USERNAME;
 const password = process.env.MONGODB_PASSWORD;
 
 mongoose.connect(
-	`mongodb+srv://${username}:${password}@cluster0.lpidaoh.mongodb.net/microservice_project?retryWrites=true&w=majority`
-);
+	`mongodb://${username}:${password}@localhost:27017/microservice_project?authSource=admin`
+).then(()=>{
+	console.log('Connected to database');
+}).catch(error=>{
+	console.log('Error connecting to database');
+	console.log(error);
+});
 
 app.post("/auth/register", async (req, res) => {
 	let { nom, email, password } = req.body;
